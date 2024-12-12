@@ -1,0 +1,92 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+epsilon_0 = 8.854e-12  
+h = 6.626e-34  
+e = 1.602e-19  
+
+
+metals = {
+    "sód": 2.28,
+    "aluminium": 4.28,
+    "żelazo": 4.5,
+    "miedź": 4.7,
+    "cynk": 4.3,
+    "srebro": 4.73,
+    "platyna": 5.65,
+    "ołów": 4.14
+}
+
+
+def ev_to_joule(ev):
+    return ev * e
+
+
+def calculate_charge(wavelength_nm, metal, R):
+    W = ev_to_joule(metals[metal])
+    frequency = 3e8 / (wavelength_nm * 1e-9)  
+    Q = (4 * np.pi * epsilon_0 * (h * frequency - W) * R) / e
+    return Q if Q > 0 else 0
+
+# Funkcja do narysowania wykresu
+def plot_charge(wavelength_nm, R):
+    charges = [calculate_charge(wavelength_nm, metal, R) for metal in metals]
+    plt.figure(figsize=(10, 6))
+    plt.bar(metals.keys(), charges, color='skyblue', edgecolor='black')
+    plt.xlabel("Metal")
+    plt.ylabel("Ładunek Q (C)")
+    plt.title(f"Wykres ładunku Q dla R={R} m i długości fali={wavelength_nm} nm")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
+
+def max_kinetic_energy(wavelength_nm, metal):
+    W = ev_to_joule(metals[metal])
+    frequency = 3e8 / (wavelength_nm * 1e-9)  
+    energy = h * frequency - W
+    return energy if energy > 0 else 0
+
+
+def min_wavelength(metal):
+    W = ev_to_joule(metals[metal])
+    frequency = W / h
+    wavelength = 3e8 / frequency  
+    return wavelength * 1e9  
+
+
+def main():
+    try:
+        print("Wybierz metal z listy:")
+        print(", ".join(metals.keys()))
+        metal = input("Metal: ").strip().lower()
+        if metal not in metals:
+            raise ValueError("Nieprawidłowy metal!")
+
+        R = float(input("Podaj promień kuli (m): "))
+        if R <= 0:
+            raise ValueError("Promień musi być dodatni!")
+
+        wavelength_nm = float(input("Podaj długość fali (nm): "))
+        if wavelength_nm <= 0:
+            raise ValueError("Długość fali musi być dodatnia!")
+
+        
+        print("\nRysuję wykres ładunku Q...")
+        plot_charge(wavelength_nm, R)
+
+        
+        energy = max_kinetic_energy(wavelength_nm, metal)
+        print(f"\nMaksymalna energia kinetyczna elektronów dla {metal}: {energy:.2e} J")
+
+        
+        min_wave = min_wavelength(metal)
+        print(f"Minimalna długość fali potrzebna do wybicia elektronu z {metal}: {min_wave:.2f} nm")
+
+    except ValueError as ve:
+        print(f"Błąd: {ve}. Spróbuj ponownie.")
+        main()
+
+if __name__ == "__main__":
+    main()
